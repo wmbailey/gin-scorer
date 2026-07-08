@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Gin Score Tracker</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Gin Scorer">
+<meta name="theme-color" content="#0f3d2e">
+<style>
+  :root{
+    --felt-dark:#0f3d2e;
+    --felt:#154d3a;
+    --felt-light:#1f6b4f;
+    --gold:#d4af6a;
+    --cream:#f2ead9;
+    --red:#b5453a;
+    --line:rgba(242,234,217,0.18);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:radial-gradient(ellipse at top, var(--felt) 0%, var(--felt-dark) 70%);
+    color:var(--cream);
+    font-family:'Georgia',serif;
+    min-height:100vh;
+    padding:16px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:520px;margin:0 auto;}
+  h1{
+    font-size:1.5rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    text-align:center;
+    color:var(--gold);
+    margin:8px 0 4px;
+    font-weight:normal;
+  }
+  .suits{
+    text-align:center;
+    letter-spacing:0.3em;
+    color:var(--red);
+    font-size:1rem;
+    margin-bottom:20px;
+    opacity:0.8;
+  }
+  .card{
+    background:rgba(0,0,0,0.18);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:16px;
+    margin-bottom:14px;
+  }
+  label{
+    display:block;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    font-size:0.72rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--gold);
+    margin-bottom:6px;
+  }
+  input[type=text], input[type=number], select{
+    width:100%;
+    padding:10px 12px;
+    border-radius:6px;
+    border:1px solid var(--line);
+    background:rgba(242,234,217,0.06);
+    color:var(--cream);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    font-size:1rem;
+    margin-bottom:12px;
+  }
+  input::placeholder{color:rgba(242,234,217,0.35);}
+  button{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    font-size:0.85rem;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    padding:12px 16px;
+    border-radius:6px;
+    border:1px solid var(--gold);
+    background:transparent;
+    color:var(--gold);
+    cursor:pointer;
+    width:100%;
+    -webkit-tap-highlight-color:transparent;
+  }
+  button:active{background:rgba(212,175,106,0.15);}
+  button.primary{
+    background:var(--gold);
+    color:var(--felt-dark);
+    font-weight:bold;
+  }
+  button.primary:active{background:#c39c54;}
+  button.small{
+    width:auto;
+    padding:8px 12px;
+    font-size:0.72rem;
+  }
+  button.danger{border-color:var(--red);color:var(--red);}
+  .row{display:flex;gap:10px;}
+  .row > div{flex:1;}
+  .row > button{flex:1;}
+  .player-name-row{display:flex;gap:10px;align-items:center;margin-bottom:10px;}
+  .suit-mark{
+    font-size:1.3rem;
+    width:28px;
+    text-align:center;
+    flex-shrink:0;
+  }
+  #setup-players input{margin-bottom:0;}
+  .score-board{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;}
+  .score-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:rgba(0,0,0,0.2);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:12px 16px;
+  }
+  .score-row.winner{
+    border-color:var(--gold);
+    background:rgba(212,175,106,0.12);
+  }
+  .score-name{
+    font-size:1.05rem;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .score-vals{text-align:right;}
+  .score-total{font-size:1.4rem;color:var(--gold);line-height:1.1;}
+  .score-needed{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    font-size:0.7rem;
+    color:rgba(242,234,217,0.6);
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+  }
+  .section-title{
+    font-size:0.75rem;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--gold);
+    margin:22px 0 10px;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  }
+  .round-entry-player{
+    border-top:1px solid var(--line);
+    padding-top:12px;
+    margin-top:12px;
+  }
+  .round-entry-player:first-child{border-top:none;margin-top:0;padding-top:0;}
+  .round-entry-player .pname{
+    font-size:0.95rem;
+    margin-bottom:8px;
+    color:var(--cream);
+  }
+  table{width:100%;border-collapse:collapse;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:0.82rem;}
+  th,td{padding:6px 8px;text-align:right;border-bottom:1px solid var(--line);}
+  th:first-child,td:first-child{text-align:left;}
+  th{color:var(--gold);font-weight:normal;text-transform:uppercase;font-size:0.68rem;letter-spacing:0.05em;}
+  .net-pos{color:#8fce9a;}
+  .net-neg{color:#e08a7d;}
+  .banner{
+    text-align:center;
+    background:rgba(212,175,106,0.15);
+    border:1px solid var(--gold);
+    border-radius:8px;
+    padding:16px;
+    margin-bottom:18px;
+    font-size:1.1rem;
+    color:var(--gold);
+  }
+  .footer-actions{display:flex;gap:10px;margin-top:20px;}
+  .hidden{display:none;}
+  .hint{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    font-size:0.72rem;
+    color:rgba(242,234,217,0.5);
+    margin-top:-6px;
+    margin-bottom:14px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Gin Score Tracker</h1>
+  <div class="suits">♠ ♥ ♦ ♣</div>
+
+  <!-- SETUP SCREEN -->
+  <div id="setup-screen" class="card">
+    <label for="num-players">Players</label>
+    <select id="num-players">
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+    </select>
+    <div id="setup-players"></div>
+    <label for="target-score">Target score</label>
+    <input type="number" id="target-score" value="500">
+    <button class="primary" id="start-game-btn">Start Game</button>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div id="game-screen" class="hidden">
+    <div id="winner-banner" class="banner hidden"></div>
+
+    <div class="score-board" id="score-board"></div>
+
+    <div id="round-entry-card" class="card">
+      <div class="section-title">Round <span id="round-number">1</span></div>
+      <div id="round-entry-fields"></div>
+      <button class="primary" id="save-round-btn" style="margin-top:6px;">Save Round</button>
+    </div>
+
+    <div class="section-title">History</div>
+    <div class="card" style="overflow-x:auto;">
+      <table id="history-table">
+        <thead><tr id="history-head"></tr></thead>
+        <tbody id="history-body"></tbody>
+      </table>
+      <div id="no-rounds" class="hint">No rounds recorded yet.</div>
+    </div>
+
+    <div class="footer-actions">
+      <button class="small" id="undo-btn">Undo Last Round</button>
+      <button class="small danger" id="new-game-btn">New Game</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'ginScorerState_v1';
+const SUITS = ['♠','♥','♦','♣'];
+
+let state = null;
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return null;
+}
+function saveState(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+}
+
+function newGame(numPlayers, names, target){
+  state = {
+    target: target,
+    players: names.map((n,i)=>({name:n || `Player ${i+1}`, suit:SUITS[i]})),
+    rounds: [], // each round: {values:[{melded,deadwood,net}], totals:[...]}
+    gameOver:false
+  };
+  saveState();
+  renderGame();
+}
+
+function currentTotals(){
+  const totals = state.players.map(()=>0);
+  state.rounds.forEach(r=>{
+    r.values.forEach((v,i)=> totals[i]+=v.net);
+  });
+  return totals;
+}
+
+function checkGameOver(totals){
+  const target = state.target;
+  return totals.some(t=>t>=target);
+}
+
+// ---------- SETUP SCREEN ----------
+const numPlayersSel = document.getElementById('num-players');
+const setupPlayersDiv = document.getElementById('setup-players');
+
+function renderSetupPlayerInputs(){
+  const n = parseInt(numPlayersSel.value,10);
+  setupPlayersDiv.innerHTML = '';
+  for(let i=0;i<n;i++){
+    const row = document.createElement('div');
+    row.className = 'player-name-row';
+    row.innerHTML = `<span class="suit-mark">${SUITS[i]}</span>
+      <input type="text" placeholder="Player ${i+1} name" data-idx="${i}" class="setup-name-input">`;
+    setupPlayersDiv.appendChild(row);
+  }
+}
+numPlayersSel.addEventListener('change', renderSetupPlayerInputs);
+renderSetupPlayerInputs();
+
+document.getElementById('start-game-btn').addEventListener('click', ()=>{
+  const n = parseInt(numPlayersSel.value,10);
+  const names = Array.from(document.querySelectorAll('.setup-name-input')).map(inp=>inp.value.trim());
+  const target = parseInt(document.getElementById('target-score').value,10) || 500;
+  newGame(n, names, target);
+  document.getElementById('setup-screen').classList.add('hidden');
+  document.getElementById('game-screen').classList.remove('hidden');
+});
+
+// ---------- GAME SCREEN ----------
+const scoreBoard = document.getElementById('score-board');
+const roundEntryFields = document.getElementById('round-entry-fields');
+const roundEntryCard = document.getElementById('round-entry-card');
+const historyHead = document.getElementById('history-head');
+const historyBody = document.getElementById('history-body');
+const noRoundsMsg = document.getElementById('no-rounds');
+const winnerBanner = document.getElementById('winner-banner');
+const roundNumberSpan = document.getElementById('round-number');
+
+function renderScoreBoard(totals, winnerIdxs){
+  scoreBoard.innerHTML='';
+  state.players.forEach((p,i)=>{
+    const needed = Math.max(state.target - totals[i], 0);
+    const row = document.createElement('div');
+    row.className = 'score-row' + (winnerIdxs && winnerIdxs.includes(i) ? ' winner' : '');
+    row.innerHTML = `
+      <div class="score-name"><span class="suit-mark">${p.suit}</span>${escapeHtml(p.name)}</div>
+      <div class="score-vals">
+        <div class="score-total">${totals[i]}</div>
+        <div class="score-needed">${state.gameOver ? (winnerIdxs.includes(i)?'Winner':'—') : needed + ' to go'}</div>
+      </div>`;
+    scoreBoard.appendChild(row);
+  });
+}
+
+function renderRoundEntry(){
+  roundEntryFields.innerHTML='';
+  state.players.forEach((p,i)=>{
+    const div = document.createElement('div');
+    div.className='round-entry-player';
+    div.innerHTML = `
+      <div class="pname">${p.suit} ${escapeHtml(p.name)}</div>
+      <div class="row">
+        <div>
+          <label>Melded points</label>
+          <input type="number" inputmode="numeric" class="melded-input" data-idx="${i}" placeholder="0">
+        </div>
+        <div>
+          <label>Deadwood</label>
+          <input type="number" inputmode="numeric" class="deadwood-input" data-idx="${i}" placeholder="0">
+        </div>
+      </div>`;
+    roundEntryFields.appendChild(div);
+  });
+}
+
+function renderHistory(){
+  historyHead.innerHTML = '<th>#</th>' + state.players.map(p=>`<th>${escapeHtml(p.name)}</th>`).join('');
+  historyBody.innerHTML='';
+  if(state.rounds.length===0){
+    noRoundsMsg.classList.remove('hidden');
+  } else {
+    noRoundsMsg.classList.add('hidden');
+    state.rounds.forEach((r,ri)=>{
+      const tr = document.createElement('tr');
+      let cells = `<td>${ri+1}</td>`;
+      r.values.forEach(v=>{
+        const cls = v.net>0?'net-pos':(v.net<0?'net-neg':'');
+        cells += `<td class="${cls}">${v.net>0?'+':''}${v.net}</td>`;
+      });
+      tr.innerHTML = cells;
+      historyBody.appendChild(tr);
+    });
+  }
+}
+
+function renderGame(){
+  const totals = currentTotals();
+  state.gameOver = checkGameOver(totals);
+  let winnerIdxs = [];
+  if(state.gameOver){
+    const maxTotal = Math.max(...totals);
+    winnerIdxs = totals.map((t,i)=>t===maxTotal?i:-1).filter(i=>i>=0);
+  }
+
+  renderScoreBoard(totals, winnerIdxs);
+  renderHistory();
+  roundNumberSpan.textContent = state.rounds.length + 1;
+
+  if(state.gameOver){
+    const names = winnerIdxs.map(i=>state.players[i].name).join(' & ');
+    winnerBanner.textContent = `${names} won with ${totals[winnerIdxs[0]]} points`;
+    winnerBanner.classList.remove('hidden');
+    roundEntryCard.classList.add('hidden');
+  } else {
+    winnerBanner.classList.add('hidden');
+    roundEntryCard.classList.remove('hidden');
+    renderRoundEntry();
+  }
+}
+
+document.getElementById('save-round-btn').addEventListener('click', ()=>{
+  const values = state.players.map((p,i)=>{
+    const melded = parseInt(document.querySelector(`.melded-input[data-idx="${i}"]`).value,10) || 0;
+    const deadwood = parseInt(document.querySelector(`.deadwood-input[data-idx="${i}"]`).value,10) || 0;
+    return { melded, deadwood, net: melded - deadwood };
+  });
+  state.rounds.push({values});
+  saveState();
+  renderGame();
+});
+
+document.getElementById('undo-btn').addEventListener('click', ()=>{
+  if(state.rounds.length===0) return;
+  state.rounds.pop();
+  state.gameOver = false;
+  saveState();
+  renderGame();
+});
+
+document.getElementById('new-game-btn').addEventListener('click', ()=>{
+  if(!confirm('Start a new game? Current game will be cleared.')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  state = null;
+  document.getElementById('game-screen').classList.add('hidden');
+  document.getElementById('setup-screen').classList.remove('hidden');
+});
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+// ---------- INIT ----------
+(function init(){
+  const saved = loadState();
+  if(saved && saved.players && saved.players.length){
+    state = saved;
+    document.getElementById('setup-screen').classList.add('hidden');
+    document.getElementById('game-screen').classList.remove('hidden');
+    renderGame();
+  }
+})();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
